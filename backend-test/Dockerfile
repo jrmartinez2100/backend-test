@@ -2,32 +2,36 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-# Copiar los archivos de la solución
+# Copiar los archivos de la soluciï¿½n
 COPY backend-test.sln ./
 COPY Application/*.csproj Application/
 COPY Domain/*.csproj Domain/
 COPY Infrastructure/*.csproj Infrastructure/
 COPY Presentation/*.csproj Presentation/
-
-# Restaurar dependencias antes de copiar el resto del código
+COPY TestBackend/*.csproj TestBackend/
+# Restaurar dependencias antes de copiar el resto del cï¿½digo
 RUN dotnet restore
 
-# Copiar el resto del código fuente
+# Copiar el resto del cï¿½digo fuente
 COPY . .
+
+# Ejecutar pruebas antes de compilar la aplicaciÃ³n
+WORKDIR /app/TestBackend
+RUN dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=lcov
 
 # Cambiar a la carpeta del proyecto principal
 WORKDIR /app/Presentation
 
-# Compilar la aplicación
+# Compilar la aplicaciï¿½n
 RUN dotnet build
 
-# Publicar la aplicación
+# Publicar la aplicaciï¿½n
 RUN dotnet publish -c Release -o /out
 
-# Imagen final para la ejecución
+# Imagen final para la ejecuciï¿½n
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /out .
 
-# Ejecutar la aplicación
+# Ejecutar la aplicaciï¿½n
 ENTRYPOINT ["dotnet", "Presentation.dll"]
