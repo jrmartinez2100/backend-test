@@ -1,0 +1,29 @@
+services:
+  postgres-db:
+    image: postgres:16
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5432:5432"
+    networks:
+      - backend-network
+
+  backend-api:
+    build:
+      context: .  # El contexto sigue siendo la raíz
+      dockerfile: Dockerfile  # Ahora apunta al Dockerfile en la raíz
+    container_name: backend-api
+    ports:
+      - "5075:5075"
+      - "7168:7168"
+    depends_on:
+      - postgres-db
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge
