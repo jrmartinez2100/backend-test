@@ -2,6 +2,7 @@
 using Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Application.IServices;
+using System.Net;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -20,8 +21,15 @@ public class MarcaAutoController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var marcas = await _marcaAutoService.GetAll();
-        return Ok(marcas);
+        try
+        {
+            var marcas = await _marcaAutoService.GetAll();
+            return Ok(marcas);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode((int)HttpStatusCode.InternalServerError, ex.Message);
+        }
     }
 
     /// <summary>
@@ -31,10 +39,17 @@ public class MarcaAutoController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var marca = await _marcaAutoService.GetById(id);
-        if (marca == null)
-            return NotFound();
-        return Ok(marca);
+        try
+        {
+            var marca = await _marcaAutoService.GetById(id);
+            if (marca == null)
+                return NotFound();
+            return Ok(marca);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode((int)HttpStatusCode.InternalServerError, ex.Message);
+        }
     }
 
     /// <summary>
@@ -44,10 +59,17 @@ public class MarcaAutoController : ControllerBase
     [HttpGet("buscar/{nombre}")]
     public async Task<IActionResult> GetByName(string nombre)
     {
-        var marca = await _marcaAutoService.GetMarcaAutosByNombre(nombre);
-        if (marca == null)
-            return NotFound();
-        return Ok(marca);
+        try
+        {
+            var marca = await _marcaAutoService.GetMarcaAutosByNombre(nombre);
+            if (marca == null)
+                return NotFound();
+            return Ok(marca);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode((int)HttpStatusCode.InternalServerError, ex.Message);
+        }
     }
 
     /// <summary>
@@ -57,8 +79,17 @@ public class MarcaAutoController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] MarcaAutoDto dto)
     {
-        await _marcaAutoService.Add(dto);
-        return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
+        try
+        {
+            // Eliminar el ID del DTO ya que es auto incremental
+            dto.Id = 0;
+            await _marcaAutoService.Add(dto);
+            return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode((int)HttpStatusCode.InternalServerError, ex.Message);
+        }
     }
 
     /// <summary>
@@ -69,15 +100,22 @@ public class MarcaAutoController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] MarcaAutoDto dto)
     {
-        if (id != dto.Id)
-            return BadRequest();
+        try
+        {
+            if (id != dto.Id)
+                return BadRequest();
 
-        var existingMarca = await _marcaAutoService.GetById(id);
-        if (existingMarca == null)
-            return NotFound();
+            var existingMarca = await _marcaAutoService.GetById(id);
+            if (existingMarca == null)
+                return NotFound();
 
-        await _marcaAutoService.Update(dto);
-        return NoContent();
+            await _marcaAutoService.Update(dto);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode((int)HttpStatusCode.InternalServerError, ex.Message);
+        }
     }
 
     /// <summary>
@@ -87,12 +125,19 @@ public class MarcaAutoController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var existingMarca = await _marcaAutoService.GetById(id);
-        if (existingMarca == null)
-            return NotFound();
+        try
+        {
+            var existingMarca = await _marcaAutoService.GetById(id);
+            if (existingMarca == null)
+                return NotFound();
 
-        await _marcaAutoService.Delete(id);
-        return NoContent();
+            await _marcaAutoService.Delete(id);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode((int)HttpStatusCode.InternalServerError, ex.Message);
+        }
     }
 }
 

@@ -8,9 +8,12 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar DbContext con PostgreSQL
+// Obtener la cadena de conexión del appsettings.json
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Registrar el DbContext en el contenedor de dependencias
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 // Add AutoMapper services
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -27,6 +30,23 @@ builder.Services.AddScoped<IMarcaAutoService, MarcaAutoService>();
 builder.Services.AddAuthentication(); // If using authentication, configure it properly
 builder.Services.AddAuthorization();
 var app = builder.Build();
+
+// Ejecutar migraciones automáticamente
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var dbContext = services.GetRequiredService<AppDbContext>();
+
+    try
+    {
+        dbContext.Database.Migrate(); // Aplica las migraciones pendientes
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error aplicando migraciones: {ex.Message}");
+    }
+}
+
 
 // Configurar middleware
 app.UseSwagger();
