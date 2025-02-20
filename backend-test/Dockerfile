@@ -29,7 +29,7 @@ RUN dotnet build
 RUN dotnet publish -c Release -o /out
 
 # Imagen final para la ejecuci�n
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS final
 WORKDIR /app
 COPY --from=build /out .
 
